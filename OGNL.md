@@ -33,8 +33,14 @@ Documentation: [OGNL Rerfernece](https://commons.apache.org/dormant/commons-ognl
 
 ### 4. Passing `access_token` in SAML Assertion
 ```C
-#attrs = new java.util.HashMap(),#attrs.put("Subject",this.get("mail")),#attrs.put("Email",#this.get("mail")),#attrs.put("First Name",#this.get("givenName")),
-#attrs.put("Last Name",#this.get("sn")),#attrs.put("COUNTRY",#this.get("country")),#attrs.put("Roles",#this.get("memberOf")),#val = @com.pingidentity.sdk.oauth20.AccessTokenIssuer@issueToken(#attrs,"","<Client Name>")
+#attrs = new java.util.HashMap(),
+#attrs.put("Subject",this.get("mail")),
+#attrs.put("Email",#this.get("mail")),
+#attrs.put("First Name",#this.get("givenName")),
+#attrs.put("Last Name",#this.get("sn")),
+#attrs.put("COUNTRY",#this.get("country")),
+#attrs.put("Roles",#this.get("memberOf")),
+#val = @com.pingidentity.sdk.oauth20.AccessTokenIssuer@issueToken(#attrs,"","<Client Name>")
 ```
 ### 5. Passing roles based on group membership
 ```C
