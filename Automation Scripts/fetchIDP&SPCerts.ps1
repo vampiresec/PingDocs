@@ -1,8 +1,8 @@
 # Genrate SP and IDP cert details report from PingFederate
 
-# Prerequisite: Install-Module -Name ImportExcel
-
 # Usage: .\fetchIDP&SPCerts.ps1 -Environment [prod|nonprod]
+
+# Prerequisite: Install-Module -Name ImportExcel
 
 # Generate ApiCreds.xml using below script and save in present working directory
 # $apiCreds = @{
@@ -10,13 +10,13 @@
 #        "client_id" = "<client_id>"
 #        "client_secret" = "<client_secret>"
 #        "token_url" = "https://auth.pingfederate.com"
-#        "api_url" = "https://<pingfederate-prod-api-url>"
+#        "api_url" = "https://<pingfederate-admin-prod-api-url>"
 #     }
 #     "nonprod" = @{
 #        "client_id" = "<client_id>"
 #       "client_secret" = "<client_secret>"
 #        "token_url" = "https://auth.pingfederate.com"
-#        "api_url" = "https://<pingfederate-nonprod-api-url>"
+#        "api_url" = "https://<pingfederate-admin-nonprod-api-url>"
 #     }
 # }
 # $secureString = ConvertTo-SecureString (ConvertTo-Json $apiCreds) -AsPlainText -Force
