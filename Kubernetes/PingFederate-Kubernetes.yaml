@@ -1,0 +1,228 @@
+# PingFederate Kubernetes Deployment with DNS-Based Clustering
+
+# Resource: Secret for PingFederate License
+# Use command: kubectl create secret generic my-secret --from-file=<path-to-license-file>
+apiVersion: v1
+data:
+  pingfederate.lic: REDACTED_BASE64_ENCODED_LICENSE_STRING
+kind: Secret
+metadata:
+  creationTimestamp: "2025-12-10T10:12:11Z"
+  name: pingfederate-license
+  namespace: default
+  resourceVersion: "4117"
+  uid: a9bab01c-d292-46d8-aa07-ee94381715ee
+type: Opaque
+## Replace your base64 encoded license above if needed
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pingfederate-admin-pv
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 10Gi # Define the size of the PV
+  accessModes:
+    - ReadWriteMany # Allow multiple pods to read and write
+  nfs:
+    path: /home/ping/Kubernetes/pingfederate-admin-out # Path on the NFS server
+    server: 192.168.49.1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pingfederate-admin-pvc
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 3Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pingfederate-cluster
+spec:
+  clusterIP: None
+  selector:
+    app: pingfederate
+  ports:
+  - name: jgroups
+    port: 7600
+    targetPort: 7600
+  # - name: jgroups-fd
+  #   port: 7700
+  #   targetPort: 7700
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pingfederate-admin
+spec:
+  selector:
+    app: pingfederate
+    role: admin
+  ports:
+  - name: admin
+    port: 9999
+    targetPort: 9999
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pingfederate-admin
+  labels:
+    role: admin
+    app: pingfederate
+spec:
+  serviceName: pingfederate-cluster
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pingfederate
+      role: admin
+  template:
+    metadata:
+      labels:
+        app: pingfederate
+        role: admin
+    spec:
+      volumes:
+      - name: pingfederate-license-volume
+        secret:
+          secretName: pingfederate-license
+      - name: pingfederate-admin-pv-volume
+        persistentVolumeClaim:
+          claimName: pingfederate-admin-pvc
+      # - name: pingfederate-server-profile-pv-volume
+      #   persistentVolumeClaim:
+      #     claimName: pingfederate-server-profile-pvc       
+      nodeName: minikube-m02
+      containers:
+      - name: pingfederate
+        image: pingidentity/pingfederate:latest
+        volumeMounts:
+          - name: pingfederate-license-volume
+            mountPath: "/opt/in/instance/server/default/conf/pingfederate.lic"
+            subPath: pingfederate.lic 
+          - name: pingfederate-admin-pv-volume
+            mountPath: "/opt/out/"
+          # - name: pingfederate-server-profile-pv-volume
+          #   mountPath: "/opt/in/"         
+        env:
+        - name: OPERATIONAL_MODE
+          value: "CLUSTERED_CONSOLE"
+        - name: PF_CLUSTER_BIND_ADDRESS
+          value: "NON_LOOPBACK"
+        - name: DNS_QUERY_LOCATION
+          value: "pingfederate-cluster.default.svc.cluster.local"
+        - name: "PF_CLUSTER_TCP_DISCOVERY_INITIAL_HOSTS"
+          value: ""
+        - name: PING_IDENTITY_ACCEPT_EULA
+          value: "yes"
+        - name: MUTE_LICENSE_VERIFICATION
+          value: "yes"
+        - name: PF_CONSOLE_ENV
+          value: "K8s"
+        - name: PF_CONSOLE_TITLE
+          value: "K8s"
+        # - name: PF_LDAP_USERNAME
+        #   value: "administrator"
+        # - name: PF_LDAP_PASSWORD
+        #   value: "2FederateM0re"
+        - name: "PF_CLUSTER_TRANSPORT_PROTOCOL"
+          value: "tcp"
+        - name: "PF_CLUSTER_BIND_PORT"
+          value: "7600"
+        # - name: "PF_ADMIN_API_BASEURL"
+        #   value: "https://pingfederate-admin:9999"
+        - name: "DISCOVERY_TAG"
+          value: <dns.DNS_PING dns_query="pingfederate-cluster.default.svc.cluster.local" dns_record_type="A" />
+        # - name: "PF_CONSOLE_AUTHENTICATION"
+        #   value: "none"
+        ports:
+        # - name: runtime-https
+        #   containerPort: 9031
+        # - name: runtime-http
+        #   containerPort: 9030
+        - name: admin
+          containerPort: 9999
+        - name: jgroups
+          containerPort: 7600
+        # - name: jgroups-fd
+        #   containerPort: 7700
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pingfederate-engine
+  labels:
+    role: engine
+    app: pingfederate
+spec:
+  serviceName: pingfederate-cluster
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pingfederate
+      role: engine
+  template:
+    metadata:
+      labels:
+        app: pingfederate
+        role: engine
+    spec:
+      volumes:
+      - name: pingfederate-license-volume
+        secret:
+          secretName: pingfederate-license
+      # - name: pingfederate-server-profile-pv-volume
+      #   persistentVolumeClaim:
+      #     claimName: pingfederate-server-profile-pvc      
+      # nodeName: minikube-m03
+      containers:
+      - name: pingfederate
+        image: pingidentity/pingfederate:latest
+        volumeMounts:
+          - name: pingfederate-license-volume
+            mountPath: "/opt/in/instance/server/default/conf/pingfederate.lic"
+            subPath: pingfederate.lic
+          # - name: pingfederate-server-profile-pv-volume
+          #   mountPath: "/opt/in/"         
+        env:
+        - name: "DISCOVERY_TAG"
+          value: <dns.DNS_PING dns_query="pingfederate-cluster.default.svc.cluster.local" dns_record_type="A" />
+        # - name: "SERVER_PROFILE_PATH"
+        #   value: "pf-dns-clustering/"       
+        - name: "PF_CLUSTER_TCP_DISCOVERY_INITIAL_HOSTS"
+          value: ""
+        - name: OPERATIONAL_MODE
+          value: "CLUSTERED_ENGINE"
+        - name: PF_CLUSTER_BIND_ADDRESS
+          value: "NON_LOOPBACK"
+        - name: DNS_QUERY_LOCATION
+          value: "pingfederate-cluster.default.svc.cluster.local"
+        - name: PING_IDENTITY_ACCEPT_EULA
+          value: "YES"
+        - name: MUTE_LICENSE_VERIFICATION
+          value: "YES"
+        - name: "PF_CLUSTER_TRANSPORT_PROTOCOL"
+          value: "tcp"
+        - name: "PF_CLUSTER_BIND_PORT"
+          value: "7600"
+        # - name: "PF_ADMIN_API_BASEURL"
+        #   value: "https://pingfederate-admin-0:9999"
+        - name: "PF_CONSOLE_AUTHENTICATION"
+          value: "none"
+        ports:
+        - name: runtime-https
+          containerPort: 9031
+        # - name: runtime-http
+        #   containerPort: 9030
+        - name: jgroups
+          containerPort: 7600
+        # - name: jgroups-fd
+        #   containerPort: 7700
