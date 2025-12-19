@@ -1,6 +1,6 @@
 # PingFederate Kubernetes Deployment
 
-A production-ready PingFederate deployment on Kubernetes using DNS-based clustering with Minikube.
+A development ready PingFederate deployment on Kubernetes using DNS-based clustering with Minikube.
 
 ## 📋 Table of Contents
 
