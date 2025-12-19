@@ -432,13 +432,6 @@ minikube delete
 - [Minikube Documentation](https://minikube.sigs.k8s.io/docs/)
 - [JGroups Documentation](http://jgroups.org/manual4/index.html)
 
-## 📝 License
-
-This configuration uses PingFederate which requires a valid license from Ping Identity.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 
