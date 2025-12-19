@@ -162,8 +162,13 @@ sudo mkdir -p /home/ping/Kubernetes/pingfederate-admin-out
 sudo chown -R nobody:nogroup /home/ping/Kubernetes/pingfederate-admin-out
 sudo chmod 777 /home/ping/Kubernetes/pingfederate-admin-out
 
+sudo mkdir -p /home/ping/Kubernetes/pingfederate-server-profile
+sudo chown -R nobody:nogroup /home/ping/Kubernetes/pingfederate-server-profile
+sudo chmod 777 /home/ping/Kubernetes/pingfederate-server-profile
+
 # Configure NFS exports
 echo "/home/ping/Kubernetes/pingfederate-admin-out *(rw,sync,no_subtree_check,no_root_squash)" | sudo tee -a /etc/exports
+echo "/home/ping/Kubernetes/pingfederate-server-profile *(rw,sync,no_subtree_check,no_root_squash)" | sudo tee -a /etc/exports
 
 # Restart NFS server
 sudo exportfs -ra
