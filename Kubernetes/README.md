@@ -312,8 +312,9 @@ kubectl logs pingfederate-engine-0 | grep -i "cluster"
 ### Access Admin Console
 
 ```bash
-# Port forward to access admin console
+# Port forward to access admin console and engine node
 kubectl port-forward svc/pingfederate-admin 9999:9999
+kubectl port-forward pingfederate-engine-0 9031:9031
 
 # Open browser to:
 # https://localhost:9999/pingfederate/app
