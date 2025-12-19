@@ -190,8 +190,8 @@ spec:
           - name: pingfederate-license-volume
             mountPath: "/opt/in/instance/server/default/conf/pingfederate.lic"
             subPath: pingfederate.lic
-          # - name: pingfederate-server-profile-pv-volume
-          #   mountPath: "/opt/in/"         
+          - name: pingfederate-server-profile-pv-volume
+            mountPath: "/opt/in/"         
         env:
         - name: "DISCOVERY_TAG"
           value: <dns.DNS_PING dns_query="pingfederate-cluster.default.svc.cluster.local" dns_record_type="A" />
