@@ -80,3 +80,8 @@ Documentation: [OGNL Rerfernece](https://commons.apache.org/dormant/commons-ognl
 ```C
 #this.get("mapped.country")!=null && #this.get("mapped.country").toString().matches("(?i).*Pakistan.*|.*China.*|.*Russia.*|.*Iran.*")?@java.lang.Boolean@FALSE:@java.lang.Boolean@TRUE
 ```
+## 9. Issue token in attribute contract fulfillment
+
+```js
+#attrs = new java.util.HashMap(),#attrs.put("SUBJECT",#this.get("mail")),#attrs.put("Email",#this.get("mail")),#attrs.put("First Name",#this.get("givenName")), #attrs.put("Last Name",#this.get("sn")),#attrs.put("COUNTRY",#this.get("country")),#attrs.put("Roles",#this.get("memberOf")),#val = @com.pingidentity.sdk.oauth20.AccessTokenIssuer@issueToken(#attrs,"","<Oauth Client ID>")
+```
